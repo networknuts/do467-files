@@ -1,0 +1,14 @@
+ntp.example.com become_user=admin
+
+[development]
+dev.example.com
+
+[testing]
+test.example.com
+
+[production]
+prod1.example.com
+prod2.example.com
+
+[production:vars]
+ansible_connection=ssh
