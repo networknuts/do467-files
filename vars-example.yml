@@ -1,0 +1,8 @@
+---
+- name: playbook example with variables
+  hosts: all
+  tasks:
+    - name: create user {{ user_name }}
+      ansible.builtin.user:
+        name: "{{ user_name }}"
+        state: present
