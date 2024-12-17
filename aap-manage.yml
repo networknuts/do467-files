@@ -71,18 +71,6 @@
           - "Team Creation Result: {{ team_creation_result }}"
           - "Job Launch Result: {{ job_launch_result }}"
 
-  # Post-run task to add user to team
-  post_tasks:
-    - name: Add User to Team
-      ansible.controller.team_associate:
-        team: "{{ new_team.name }}"
-        user: "{{ new_user.username }}"
-        controller_host: "{{ controller_host }}"
-        controller_username: "{{ controller_username }}"
-        controller_password: "{{ controller_password }}"
-        validate_certs: false  # Set to true in production
-      when: user_creation_result.changed and team_creation_result.changed
-
 # Notes for usage:
 # 1. Prerequisites:
 #    - Install the ansible.controller collection:
