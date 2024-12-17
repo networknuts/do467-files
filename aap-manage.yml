@@ -1,0 +1,104 @@
+---
+- name: Managing AAP
+  hosts: localhost
+  gather_facts: false
+  vars:
+    # Ansible Controller (AAP) connection details
+    controller_host: "https://your-aap-instance.example.com"
+    controller_username: "admin"
+    controller_password: "your_admin_password"
+    
+    # User details
+    new_user:
+      username: "new_automation_user"
+      password: "SecurePassword123!"
+      email: "new_user@example.com"
+      first_name: "Automation"
+      last_name: "User"
+      state: present
+    
+    # Team details
+    new_team:
+      name: "Operations Team"
+      organization: "Default"
+      state: present
+    
+    # Job Template details
+    job_template_name: "Example Deployment Template"
+
+  collections:
+    - ansible.controller
+
+  tasks:
+    - name: Create User in Ansible Controller
+      ansible.controller.user:
+        username: "{{ new_user.username }}"
+        password: "{{ new_user.password }}"
+        email: "{{ new_user.email }}"
+        first_name: "{{ new_user.first_name }}"
+        last_name: "{{ new_user.last_name }}"
+        state: "{{ new_user.state }}"
+        controller_host: "{{ controller_host }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: false  # Set to true in production
+      register: user_creation_result
+
+    - name: Create Team in Ansible Controller
+      ansible.controller.team:
+        name: "{{ new_team.name }}"
+        organization: "{{ new_team.organization }}"
+        state: "{{ new_team.state }}"
+        controller_host: "{{ controller_host }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: false  # Set to true in production
+      register: team_creation_result
+
+    - name: Launch Job Template
+      ansible.controller.job_launch:
+        job_template: "{{ job_template_name }}"
+        controller_host: "{{ controller_host }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: false  # Set to true in production
+      register: job_launch_result
+
+    - name: Display Results
+      debug:
+        msg:
+          - "User Creation Result: {{ user_creation_result }}"
+          - "Team Creation Result: {{ team_creation_result }}"
+          - "Job Launch Result: {{ job_launch_result }}"
+
+  # Post-run task to add user to team
+  post_tasks:
+    - name: Add User to Team
+      ansible.controller.team_associate:
+        team: "{{ new_team.name }}"
+        user: "{{ new_user.username }}"
+        controller_host: "{{ controller_host }}"
+        controller_username: "{{ controller_username }}"
+        controller_password: "{{ controller_password }}"
+        validate_certs: false  # Set to true in production
+      when: user_creation_result.changed and team_creation_result.changed
+
+# Notes for usage:
+# 1. Prerequisites:
+#    - Install the ansible.controller collection:
+#      ansible-galaxy collection install ansible.controller
+# 
+# 2. Before running, replace placeholders:
+#    - controller_host: Your Ansible Controller instance URL
+#    - controller_username: Admin username
+#    - controller_password: Admin password
+#    - Customize new_user and new_team details as needed
+#    - Set correct job_template_name
+#
+# 3. Run the playbook:
+#    ansible-playbook aap_management_playbook.yml
+#
+# 4. Security Recommendations:
+#    - Use Ansible Vault to encrypt sensitive information
+#    - Set validate_certs to true in production
+#    - Implement proper access controls and password policies
